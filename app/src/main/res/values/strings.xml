@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Real-Time Translator</string>
+    <string name="app_subtitle">Translate conversations in real-time</string>
+    <string name="start_translator">START TRANSLATOR</string>
+    <string name="stop_translator">STOP TRANSLATOR</string>
+    <string name="settings">Settings</string>
+    <string name="permissions_required">Permissions Required</string>
+    <string name="permission_microphone">Microphone Access</string>
+    <string name="permission_notifications">Notifications</string>
+    <string name="permission_overlay">Draw Over Other Apps</string>
+    <string name="grant_mic_notif">Grant Microphone &amp; Notification</string>
+    <string name="grant_overlay">Grant Overlay Permission</string>
+    <string name="language_direction">Language Direction</string>
+    <string name="zh_to_en">Chinese → English</string>
+    <string name="en_to_zh">English → Chinese</string>
+    <string name="text_to_speech">Text to Speech</string>
+    <string name="enable_tts">Speak Translations Aloud</string>
+    <string name="overlay_opacity">Overlay Opacity</string>
+    <string name="opacity">Opacity</string>
+    <string name="opacity_percent">%d%%</string>
+    <string name="instructions">Grant all permissions above, then tap START TRANSLATOR.\nA floating overlay will appear over all apps.\nSpeak naturally — translations appear instantly.</string>
+    <string name="translator_active">Translator Active</string>
+    <string name="translator_running">Real-time translation is running</string>
+    <string name="stop">Stop</string>
+    <string name="granted">✓ Granted</string>
+    <string name="not_granted">✗ Not Granted</string>
+    <string name="all_permissions_granted">All permissions granted. Ready to start!</string>
+    <string name="grant_permissions_hint">Grant all permissions above, then tap START TRANSLATOR to begin.</string>
+    <string name="notification_title">Translator Active</string>
+    <string name="notification_text">Real-time translation is running</string>
+    <string name="service_running">● Service Running</string>
+    <string name="service_stopped">● Service Stopped</string>
+</resources>
