@@ -4,7 +4,7 @@
         <item name="colorPrimary">@color/accent_blue</item>
         <item name="colorPrimaryVariant">@color/card_background</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/accent_blue</item>
+        <item name="colorSecondary">@color/accent_green</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="android:colorBackground">@color/background_dark</item>
         <item name="android:windowBackground">@color/background_dark</item>

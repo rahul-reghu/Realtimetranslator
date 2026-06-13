@@ -212,14 +212,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateServiceButton() {
         if (isServiceRunning) {
             binding.btnStartStop.text = getString(R.string.stop_translator)
-            binding.btnStartStop.setBackgroundColor(
-                ContextCompat.getColor(this, R.color.stop_button)
-            )
+            binding.btnStartStop.setBackgroundResource(R.drawable.bg_pill_red)
         } else {
             binding.btnStartStop.text = getString(R.string.start_translator)
-            binding.btnStartStop.setBackgroundColor(
-                ContextCompat.getColor(this, R.color.start_button)
-            )
+            binding.btnStartStop.setBackgroundResource(R.drawable.bg_pill_green)
         }
     }
 }

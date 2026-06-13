@@ -6,145 +6,179 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardOverlay"
-        android:layout_width="320dp"
+        android:layout_width="340dp"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#CC1A1A2E"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="8dp">
+        app:cardBackgroundColor="@color/overlay_bg"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="16dp">
 
         <LinearLayout
             android:id="@+id/layoutContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="14dp">
 
-            <!-- Drag Handle + top-right controls -->
+            <!-- Top bar: drag handle + controls -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="10dp">
 
+                <!-- Drag handle (takes up most space) -->
                 <View
                     android:id="@+id/dragHandle"
                     android:layout_width="0dp"
                     android:layout_height="4dp"
                     android:layout_weight="1"
-                    android:background="#66FFFFFF" />
+                    android:layout_marginEnd="12dp"
+                    android:background="#44FFFFFF"
+                    android:backgroundTint="@null"/>
 
                 <ImageButton
                     android:id="@+id/btnMinimize"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:src="@android:drawable/arrow_up_float"
-                    android:tint="#FFFFFF"
+                    android:tint="#AAFFFFFF"
                     android:background="@android:color/transparent"
                     android:contentDescription="Minimize"
-                    android:layout_marginStart="8dp" />
+                    android:layout_marginEnd="2dp"/>
 
                 <ImageButton
                     android:id="@+id/btnClose"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:tint="#FF6B6B"
+                    android:tint="@color/accent_red"
                     android:background="@android:color/transparent"
-                    android:contentDescription="Close"
-                    android:layout_marginStart="4dp" />
+                    android:contentDescription="Close"/>
             </LinearLayout>
 
-            <!-- TAP TO LISTEN / TRANSLATE button -->
+            <!-- Listen / Translate button -->
             <Button
                 android:id="@+id/btnListenToggle"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:text="TAP TO LISTEN"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:backgroundTint="#FF2E7D32"
-                android:layout_marginBottom="8dp" />
+                android:letterSpacing="0.05"
+                android:background="@drawable/bg_pill_green"
+                android:layout_marginBottom="10dp"
+                android:stateListAnimator="@null"/>
 
-            <!-- Language swap button -->
+            <!-- Language swap pill -->
             <Button
                 android:id="@+id/btnSwapLanguage"
                 android:layout_width="match_parent"
                 android:layout_height="36dp"
                 android:text="ZH → EN  ⇄  tap to swap"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp"
-                android:backgroundTint="#33FFFFFF"
-                android:layout_marginBottom="10dp" />
+                android:background="@drawable/bg_pill_glass"
+                android:layout_marginBottom="14dp"
+                android:stateListAnimator="@null"/>
 
-            <!-- Source Text (live preview of what's being heard) -->
+            <!-- Heard text label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HEARD"
+                android:textColor="@color/text_hint"
+                android:textSize="9sp"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Source text (live preview) -->
             <TextView
                 android:id="@+id/tvSourceText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="32dp"
                 android:hint="@string/listening"
-                android:textColor="#99FFFFFF"
-                android:textColorHint="#55FFFFFF"
-                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="13sp"
                 android:maxLines="3"
                 android:ellipsize="end"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="10dp"/>
 
-            <!-- Arrow -->
-            <TextView
+            <!-- Divider with arrow -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="↓"
-                android:textColor="#55FFFFFF"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
 
-            <!-- Translated Text -->
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/divider"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="  ↓  "
+                    android:textColor="@color/accent_blue"
+                    android:textSize="13sp"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/divider"/>
+            </LinearLayout>
+
+            <!-- Translation label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRANSLATION"
+                android:textColor="@color/text_hint"
+                android:textSize="9sp"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="6dp"/>
+
+            <!-- Translated text -->
             <TextView
                 android:id="@+id/tvTranslatedText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:minHeight="44dp"
+                android:textColor="@color/white"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp" />
+                android:lineSpacingMultiplier="1.2"
+                android:layout_marginBottom="12dp"/>
 
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33FFFFFF"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Bottom Row: TTS -->
+            <!-- Bottom row: TTS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <ImageButton
+                <Button
                     android:id="@+id/btnTts"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/ic_lock_silent_mode_off"
-                    android:tint="#FFFFFF"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Speak translation"
-                    android:padding="8dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Tap speaker to hear translation"
-                    android:textColor="#55FFFFFF"
-                    android:textSize="11sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="🔊 Speak"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:background="@drawable/bg_pill_blue"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:stateListAnimator="@null"
+                    android:contentDescription="Speak translation"/>
 
             </LinearLayout>
 
