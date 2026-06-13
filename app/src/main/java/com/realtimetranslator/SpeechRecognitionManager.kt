@@ -23,7 +23,7 @@ class SpeechRecognitionManager(
 
     companion object {
         private const val TAG = "SpeechManager"
-        private const val SPEAKING_RMS_THRESHOLD = 2.0f
+        private const val SPEAKING_RMS_THRESHOLD = 0.5f
         private const val SILENCE_TO_COMMIT_MS = 1500L
         private const val RESTART_DELAY_MS = 400L
     }
@@ -143,7 +143,6 @@ class SpeechRecognitionManager(
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000L)
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 4000L)
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 500L)
-            putExtra("android.speech.extra.PREFER_OFFLINE", true)
         }
 
         try {
@@ -178,10 +177,9 @@ class SpeechRecognitionManager(
                 ?.firstOrNull()?.trim() ?: return
             if (text.isNotBlank()) {
                 latestPartialText = text
-                if (personIsSpeaking) {
-                    silenceHandler.removeCallbacks(silenceCommitRunnable)
-                    silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
-                }
+                personIsSpeaking = true
+                silenceHandler.removeCallbacks(silenceCommitRunnable)
+                silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
             }
         }
 
@@ -235,7 +233,15 @@ class SpeechRecognitionManager(
             silenceHandler.removeCallbacks(silenceCommitRunnable)
         }
 
-        override fun onEndOfSpeech() { isListening = false }
+        override fun onEndOfSpeech() {
+            isListening = false
+            // Person stopped speaking — start silence timer regardless of VAD state
+            if (latestPartialText.isNotBlank()) {
+                personIsSpeaking = true
+                silenceHandler.removeCallbacks(silenceCommitRunnable)
+                silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
+            }
+        }
         override fun onBufferReceived(buffer: ByteArray?) {}
         override fun onEvent(eventType: Int, params: Bundle?) {}
     }
