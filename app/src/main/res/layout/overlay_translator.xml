@@ -67,6 +67,18 @@
                 android:layout_marginStart="2dp"/>
         </LinearLayout>
 
+        <!-- Mic activity indicator -->
+        <TextView
+            android:id="@+id/tvMicIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="● ●  ●"
+            android:textSize="8sp"
+            android:gravity="center"
+            android:textColor="#4400C896"
+            android:visibility="gone"
+            android:layout_marginBottom="2dp"/>
+
         <!-- Privacy mode hint (shown only when privacy mode is on) -->
         <TextView
             android:id="@+id/tvPrivacyHint"

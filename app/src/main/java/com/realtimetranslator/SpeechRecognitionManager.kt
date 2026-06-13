@@ -31,6 +31,8 @@ class SpeechRecognitionManager(
         /** Called continuously with live captured text (for on-screen preview). */
         fun onPreview(text: String)
         fun onError(message: String)
+        /** Called continuously with mic volume level (0..12 typical range). */
+        fun onVolumeChanged(rmsdB: Float) {}
     }
 
     companion object {
@@ -193,7 +195,7 @@ class SpeechRecognitionManager(
             isListening = true
         }
 
-        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onRmsChanged(rmsdB: Float) { callback.onVolumeChanged(rmsdB) }
 
         override fun onPartialResults(partialResults: Bundle?) {
             val text = partialResults

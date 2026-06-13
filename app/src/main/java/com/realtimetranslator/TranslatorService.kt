@@ -140,8 +140,11 @@ class TranslatorService : LifecycleService() {
                     }
 
                     override fun onPreview(text: String) {
-                        // Show live captured text in the overlay's source field
                         overlayManager?.updateSourcePreview(text)
+                    }
+
+                    override fun onVolumeChanged(rmsdB: Float) {
+                        overlayManager?.updateMicLevel(rmsdB)
                     }
 
                     override fun onError(message: String) {

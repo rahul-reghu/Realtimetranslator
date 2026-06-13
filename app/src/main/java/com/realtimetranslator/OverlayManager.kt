@@ -3,6 +3,7 @@ package com.realtimetranslator
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.view.ContextThemeWrapper
 import android.view.Gravity
@@ -97,6 +98,19 @@ class OverlayManager(private val context: Context) {
                 binding.tvSourceText.text = text
                 binding.tvSourceText.visibility = View.VISIBLE
             }
+        }
+    }
+
+    fun updateMicLevel(rmsdB: Float) {
+        if (!::binding.isInitialized) return
+        overlayView?.post {
+            if (!isListening) return@post
+            // Map rms 0..10 to alpha and color
+            val level = (rmsdB / 10f).coerceIn(0f, 1f)
+            val baseAlpha = 80
+            val alpha = (baseAlpha + (175 * level)).toInt().coerceIn(0, 255)
+            val green = (0x88 + (0x77 * level)).toInt().coerceIn(0, 255)
+            binding.tvMicIndicator.setTextColor(Color.argb(alpha, 0, green, 0x7A))
         }
     }
 
@@ -260,6 +274,7 @@ class OverlayManager(private val context: Context) {
                 binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFF00C896.toInt())
             }
         }
+        binding.tvMicIndicator.visibility = if (isListening) View.VISIBLE else View.GONE
     }
 
     private fun minimizeOverlay() {
