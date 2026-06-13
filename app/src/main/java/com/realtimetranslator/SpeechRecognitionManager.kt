@@ -137,22 +137,35 @@ class SpeechRecognitionManager(
         }
     }
 
+    private var savedMusicVol = -1
+    private var savedSystemVol = -1
+
     private fun muteRecognizerBeep() {
         try {
-            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
-            handler.postDelayed({
-                try {
-                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
-                } catch (e: Exception) { }
-            }, MUTE_DURATION_MS)
+            // Save and zero out both streams Samsung uses for the recognition beep
+            savedMusicVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            savedSystemVol = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0)
+            handler.postDelayed({ restoreVolume() }, MUTE_DURATION_MS)
         } catch (e: Exception) {
             Log.w(TAG, "Could not mute recognition sound", e)
         }
     }
 
+    private fun restoreVolume() {
+        try {
+            if (savedMusicVol >= 0) audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedMusicVol, 0)
+            if (savedSystemVol >= 0) audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, savedSystemVol, 0)
+        } catch (e: Exception) { }
+    }
+
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
             isListening = true
+            // Restore volume now that the beep window has passed
+            handler.removeCallbacksAndMessages(null)
+            restoreVolume()
         }
 
         override fun onRmsChanged(rmsdB: Float) {
