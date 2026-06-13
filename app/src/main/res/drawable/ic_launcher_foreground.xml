@@ -4,22 +4,20 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Microphone body -->
     <path
         android:fillColor="#FF4FC3F7"
         android:pathData="M54,30 C46,30 40,36 40,44 L40,54 C40,62 46,68 54,68 C62,68 68,62 68,54 L68,44 C68,36 62,30 54,30 Z" />
+    <!-- Microphone arc -->
     <path
         android:fillColor="#FF4FC3F7"
-        android:pathData="M34,54 C34,54 34,68 54,68 C74,68 74,54 74,54 L70,54 C70,54 70,64 54,64 C38,64 38,54 38,54 Z" />
-    <rect
+        android:pathData="M34,54 C34,65 43,74 54,74 C65,74 74,65 74,54 L70,54 C70,63 63,70 54,70 C45,70 38,63 38,54 Z" />
+    <!-- Microphone stem -->
+    <path
         android:fillColor="#FF4FC3F7"
-        android:x="51"
-        android:y="68"
-        android:width="6"
-        android:height="10" />
-    <rect
+        android:pathData="M51,74 L57,74 L57,84 L51,84 Z" />
+    <!-- Microphone base -->
+    <path
         android:fillColor="#FF4FC3F7"
-        android:x="44"
-        android:y="77"
-        android:width="20"
-        android:height="4" />
+        android:pathData="M44,81 L64,81 L64,85 L44,85 Z" />
 </vector>
