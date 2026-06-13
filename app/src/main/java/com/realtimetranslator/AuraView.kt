@@ -90,31 +90,32 @@ class AuraView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         if (width == 0 || height == 0) return
 
-        val inset = 9f  // half of glow strokeWidth so it doesn't clip
-        val rect = RectF(inset, inset, width - inset, height - inset)
         val cx = width / 2f
         val cy = height / 2f
 
         val colors = if (isActive) activeColors else idleColors
         val alpha = if (isActive) pulseAlpha.toInt() else 70
 
-        // Build a SweepGradient centered on the view, then rotate it
         val shader = SweepGradient(cx, cy, colors, null)
         val matrix = Matrix()
         matrix.setRotate(rotationAngle, cx, cy)
         shader.setLocalMatrix(matrix)
 
-        // Outer glow (blurred, wide stroke)
+        // Wide inner glow — strokes from the edge inward so it stays within the card
+        val glowInset = 9f
+        val glowRect = RectF(glowInset, glowInset, width - glowInset, height - glowInset)
         glowPaint.shader = shader
-        glowPaint.alpha = (alpha * 0.55f).toInt()
-        glowPaint.maskFilter = BlurMaskFilter(22f, BlurMaskFilter.Blur.NORMAL)
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, glowPaint)
+        glowPaint.alpha = (alpha * 0.6f).toInt()
+        glowPaint.maskFilter = BlurMaskFilter(16f, BlurMaskFilter.Blur.NORMAL)
+        canvas.drawRoundRect(glowRect, cornerRadius, cornerRadius, glowPaint)
 
-        // Inner crisp border line
+        // Crisp thin border right on the inner edge
+        val strokeInset = 3f
+        val strokeRect = RectF(strokeInset, strokeInset, width - strokeInset, height - strokeInset)
         strokePaint.shader = shader
         strokePaint.alpha = alpha
-        strokePaint.maskFilter = BlurMaskFilter(4f, BlurMaskFilter.Blur.NORMAL)
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, strokePaint)
+        strokePaint.maskFilter = BlurMaskFilter(2f, BlurMaskFilter.Blur.NORMAL)
+        canvas.drawRoundRect(strokeRect, cornerRadius, cornerRadius, strokePaint)
     }
 
     override fun onDetachedFromWindow() {

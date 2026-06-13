@@ -57,6 +57,9 @@ class OverlayManager(private val context: Context) {
         updateListenButton()
         updateSwapButton()
 
+        // CardView clips children — tell it not to clip so the inner glow shows fully
+        binding.cardOverlay.clipChildren = false
+
         windowManager.addView(overlayView, layoutParams)
         isShowing = true
     }
@@ -112,8 +115,7 @@ class OverlayManager(private val context: Context) {
     private val dragThreshold = 10f   // pixels moved before we treat touch as a drag
 
     private fun setupDragListener() {
-        // Make the whole card draggable — use a threshold to distinguish drag from tap
-        binding.cardOverlay.setOnTouchListener { _, event ->
+        binding.root.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = layoutParams.x
