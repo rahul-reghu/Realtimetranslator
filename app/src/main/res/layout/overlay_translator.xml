@@ -19,7 +19,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="10dp">
 
-        <!-- Top bar: drag handle + controls -->
+        <!-- Top bar: drag handle + privacy toggle + minimize + close -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="20dp"
@@ -34,6 +34,18 @@
                 android:layout_weight="1"
                 android:background="#44FFFFFF"/>
 
+            <!-- Privacy / earphone mode toggle -->
+            <TextView
+                android:id="@+id/btnPrivacyMode"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:text="🎧"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:background="@android:color/transparent"
+                android:layout_marginStart="6dp"
+                android:contentDescription="Privacy mode"/>
+
             <ImageButton
                 android:id="@+id/btnMinimize"
                 android:layout_width="24dp"
@@ -42,7 +54,7 @@
                 android:tint="#88FFFFFF"
                 android:background="@android:color/transparent"
                 android:contentDescription="Minimize"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="4dp"/>
 
             <ImageButton
                 android:id="@+id/btnClose"
@@ -54,6 +66,18 @@
                 android:contentDescription="Close"
                 android:layout_marginStart="2dp"/>
         </LinearLayout>
+
+        <!-- Privacy mode hint (shown only when privacy mode is on) -->
+        <TextView
+            android:id="@+id/tvPrivacyHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎧 Hold while they speak"
+            android:textColor="#88FFFFFF"
+            android:textSize="9sp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="4dp"/>
 
         <!-- Listen / Translate + swap in one row -->
         <LinearLayout

@@ -20,6 +20,7 @@ class OverlayManager(private val context: Context) {
     private var isMinimized = false
     private var isShowing = false
     private var isListening = false
+    private var isPrivacyMode = false
     private var currentLanguageLabel = "ZH↔EN"
     private lateinit var layoutParams: WindowManager.LayoutParams
     private var lastTranslatedText = ""
@@ -57,6 +58,7 @@ class OverlayManager(private val context: Context) {
         setupButtons()
         updateListenButton()
         updateSwapButton()
+        updatePrivacyButton()
 
         windowManager.addView(overlayView, layoutParams)
         isShowing = true
@@ -110,7 +112,7 @@ class OverlayManager(private val context: Context) {
     }
 
     private var isDragging = false
-    private val dragThreshold = 10f   // pixels moved before we treat touch as a drag
+    private val dragThreshold = 10f
 
     private fun setupDragListener() {
         binding.cardOverlay.setOnTouchListener { _, event ->
@@ -134,12 +136,12 @@ class OverlayManager(private val context: Context) {
                         layoutParams.y = initialY + dy.toInt()
                         windowManager.updateViewLayout(overlayView, layoutParams)
                     }
-                    isDragging  // only consume event if dragging
+                    isDragging
                 }
                 MotionEvent.ACTION_UP -> {
                     val wasDragging = isDragging
                     isDragging = false
-                    wasDragging  // if was dragging, consume; else let click through to children
+                    wasDragging
                 }
                 else -> false
             }
@@ -147,13 +149,53 @@ class OverlayManager(private val context: Context) {
     }
 
     private fun setupButtons() {
-        binding.btnListenToggle.setOnClickListener {
-            isListening = !isListening
-            updateListenButton()
-            if (!isListening) {
-                binding.tvSourceText.visibility = View.GONE
+        // Privacy mode toggle
+        binding.btnPrivacyMode.setOnClickListener {
+            isPrivacyMode = !isPrivacyMode
+            updatePrivacyButton()
+            // If switching off privacy mode while listening, stop
+            if (!isPrivacyMode && isListening) {
+                isListening = false
+                updateListenButton()
+                onListenToggled?.invoke(false)
             }
-            onListenToggled?.invoke(isListening)
+        }
+
+        // Listen button — behaviour depends on mode
+        binding.btnListenToggle.setOnClickListener {
+            if (!isPrivacyMode) {
+                // Normal toggle mode
+                isListening = !isListening
+                updateListenButton()
+                if (!isListening) binding.tvSourceText.visibility = View.GONE
+                onListenToggled?.invoke(isListening)
+            }
+            // In privacy mode, clicks are ignored — only hold works
+        }
+
+        // Hold-to-listen for privacy mode
+        binding.btnListenToggle.setOnTouchListener { _, event ->
+            if (!isPrivacyMode) return@setOnTouchListener false
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    if (!isListening) {
+                        isListening = true
+                        updateListenButton()
+                        onListenToggled?.invoke(true)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (isListening) {
+                        isListening = false
+                        updateListenButton()
+                        binding.tvSourceText.visibility = View.GONE
+                        onListenToggled?.invoke(false)
+                    }
+                    true
+                }
+                else -> false
+            }
         }
 
         binding.btnSwapLanguage.setOnClickListener {
@@ -176,14 +218,36 @@ class OverlayManager(private val context: Context) {
         }
     }
 
+    private fun updatePrivacyButton() {
+        if (!::binding.isInitialized) return
+        if (isPrivacyMode) {
+            binding.btnPrivacyMode.alpha = 1.0f
+            binding.tvPrivacyHint.visibility = View.VISIBLE
+            // Switch listen button label to hold mode
+            binding.btnListenToggle.text = "🎧 HOLD"
+            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFF6C63FF.toInt())
+        } else {
+            binding.btnPrivacyMode.alpha = 0.4f
+            binding.tvPrivacyHint.visibility = View.GONE
+            updateListenButton()
+        }
+    }
+
     private fun updateListenButton() {
         if (!::binding.isInitialized) return
-        if (isListening) {
-            binding.btnListenToggle.text = "⏹ TRANSLATE"
-            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFFFF4D6D.toInt())
+        if (isPrivacyMode) {
+            binding.btnListenToggle.text = if (isListening) "🎧 ON" else "🎧 HOLD"
+            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(
+                if (isListening) 0xFFFF4D6D.toInt() else 0xFF6C63FF.toInt()
+            )
         } else {
-            binding.btnListenToggle.text = "▶ LISTEN"
-            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFF00C896.toInt())
+            if (isListening) {
+                binding.btnListenToggle.text = "⏹ TRANSLATE"
+                binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFFFF4D6D.toInt())
+            } else {
+                binding.btnListenToggle.text = "▶ LISTEN"
+                binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFF00C896.toInt())
+            }
         }
     }
 
