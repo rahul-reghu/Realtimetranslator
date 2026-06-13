@@ -9,12 +9,6 @@
     app:cardCornerRadius="18dp"
     app:cardElevation="0dp">
 
-    <!-- Aura border glow drawn inside the card — clipped to rounded corners by CardView -->
-    <com.realtimetranslator.AuraView
-        android:id="@+id/auraView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
     <LinearLayout
         android:id="@+id/layoutContent"
         android:layout_width="match_parent"
