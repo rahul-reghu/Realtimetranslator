@@ -233,6 +233,14 @@ class SpeechRecognitionManager(
                     }
                     scheduleBegin()
                 }
+                SpeechRecognizer.ERROR_AUDIO -> {
+                    // Microphone is held by another app (e.g. WeChat/WhatsApp during a call).
+                    // Stop retrying — notify the user to switch to speakerphone.
+                    Log.w(TAG, "Mic unavailable — another app holds it")
+                    isActive = false
+                    restoreVolume()
+                    callback.onError("MIC_BUSY")
+                }
                 SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> scheduleBegin(2000)
                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> {
                     callback.onError("Microphone permission required")

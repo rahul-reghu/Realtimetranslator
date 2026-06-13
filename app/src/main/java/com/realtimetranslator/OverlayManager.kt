@@ -100,6 +100,17 @@ class OverlayManager(private val context: Context) {
         }
     }
 
+    fun showMicBusyError() {
+        overlayView?.post {
+            isListening = false
+            updateListenButton()
+            binding.tvSourceText.visibility = View.GONE
+            binding.tvTranslatedText.text = "⚠️ Mic busy — enable speakerphone in your call app, then tap LISTEN again"
+            binding.tvTranslatedText.visibility = View.VISIBLE
+            binding.btnTts.visibility = View.GONE
+        }
+    }
+
     fun updateLanguageLabel(label: String) {
         currentLanguageLabel = label.replace(" → ", "↔").replace(" to ", "↔")
         if (::binding.isInitialized) {

@@ -146,6 +146,9 @@ class TranslatorService : LifecycleService() {
 
                     override fun onError(message: String) {
                         Log.w(TAG, "Speech error: $message")
+                        if (message == "MIC_BUSY") {
+                            overlayManager?.showMicBusyError()
+                        }
                     }
                 }
             )
