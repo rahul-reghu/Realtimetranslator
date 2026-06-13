@@ -23,81 +23,102 @@ class SpeechRecognitionManager(
 
     companion object {
         private const val TAG = "SpeechManager"
-
-        // RMS level above this = someone is speaking
         private const val SPEAKING_RMS_THRESHOLD = 2.0f
-
-        // How long silence must last before we consider the person done speaking (ms)
         private const val SILENCE_TO_COMMIT_MS = 1500L
-
-        // How long to wait before restarting recognition after a session ends (ms)
-        private const val RESTART_DELAY_MS = 300L
-
-        // Mute the beep for this long after starting recognition (ms)
-        private const val MUTE_DURATION_MS = 500L
+        private const val RESTART_DELAY_MS = 400L
     }
 
     private var speechRecognizer: SpeechRecognizer? = null
-    private var currentLanguageCode: String = "zh-CN"
+    private var currentLanguageCode = "zh-CN"
     private var isListening = false
-    private var isDestroyed = false
+    private var isActive = false   // true = user tapped "listen", false = paused
 
-    // VAD state
     private var personIsSpeaking = false
     private var latestPartialText = ""
-    private val silenceHandler = Handler(Looper.getMainLooper())
-    private val handler = Handler(Looper.getMainLooper())
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val silenceHandler = Handler(Looper.getMainLooper())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    // Fires when silence has lasted long enough after the person spoke
+    // Saved volumes — set to 0 while session is active, restored on pause/destroy
+    private var savedMusicVol = -1
+    private var savedSystemVol = -1
+
     private val silenceCommitRunnable = Runnable {
-        if (latestPartialText.isNotBlank()) {
-            val text = latestPartialText.trim()
+        val text = latestPartialText.trim()
+        if (text.isNotBlank()) {
             latestPartialText = ""
             personIsSpeaking = false
             callback.onResult(text)
         }
     }
 
+    // ── Public API ────────────────────────────────────────────────────────────
+
     fun startListening(languageCode: String) {
-        if (isDestroyed) { resume(languageCode); return }
         currentLanguageCode = languageCode
-        isDestroyed = false
+        isActive = true
+        muteForSession()          // silence beep for entire session
         initializeRecognizer()
-        scheduleBeginListening(300)
+        scheduleBegin(300)
+    }
+
+    fun pause() {
+        isActive = false
+        isListening = false
+        handler.removeCallbacksAndMessages(null)
+        silenceHandler.removeCallbacksAndMessages(null)
+        speechRecognizer?.cancel()
+        restoreVolume()           // restore volume when user pauses
     }
 
     fun updateLanguage(languageCode: String) {
         currentLanguageCode = languageCode
         if (isListening) {
-            speechRecognizer?.stopListening()
-            scheduleBeginListening(600)
+            speechRecognizer?.cancel()
+            scheduleBegin(400)
         }
     }
 
-    fun pause() {
-        isDestroyed = true
-        handler.removeCallbacksAndMessages(null)
-        silenceHandler.removeCallbacksAndMessages(null)
-        speechRecognizer?.cancel()
-        isListening = false
-    }
-
-    fun resume(languageCode: String = currentLanguageCode) {
-        isDestroyed = false
-        currentLanguageCode = languageCode
-        scheduleBeginListening(300)
-    }
-
     fun destroy() {
-        isDestroyed = true
+        isActive = false
         handler.removeCallbacksAndMessages(null)
         silenceHandler.removeCallbacksAndMessages(null)
         speechRecognizer?.destroy()
         speechRecognizer = null
         isListening = false
+        restoreVolume()
     }
+
+    // ── Volume management ─────────────────────────────────────────────────────
+
+    private fun muteForSession() {
+        try {
+            savedMusicVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            savedSystemVol = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0)
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not mute streams", e)
+        }
+    }
+
+    private fun restoreVolume() {
+        try {
+            if (savedMusicVol >= 0) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedMusicVol, 0)
+                savedMusicVol = -1
+            }
+            if (savedSystemVol >= 0) {
+                audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, savedSystemVol, 0)
+                savedSystemVol = -1
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not restore volume", e)
+        }
+    }
+
+    // ── Internal ──────────────────────────────────────────────────────────────
 
     private fun initializeRecognizer() {
         speechRecognizer?.destroy()
@@ -106,25 +127,23 @@ class SpeechRecognitionManager(
         }
     }
 
-    private fun scheduleBeginListening(delayMs: Long = RESTART_DELAY_MS) {
-        if (isDestroyed) return
+    private fun scheduleBegin(delayMs: Long = RESTART_DELAY_MS) {
+        if (!isActive) return
         handler.postDelayed({ beginListening() }, delayMs)
     }
 
     private fun beginListening() {
-        if (isDestroyed || isListening) return
-
-        muteRecognizerBeep()
+        if (!isActive || isListening) return
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLanguageCode)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            // Set a generous silence window — our VAD handles the real end-of-speech
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 4000L)
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 4000L)
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 500L)
+            putExtra("android.speech.extra.PREFER_OFFLINE", true)
         }
 
         try {
@@ -133,63 +152,32 @@ class SpeechRecognitionManager(
         } catch (e: Exception) {
             Log.e(TAG, "startListening failed", e)
             isListening = false
-            scheduleBeginListening(1000)
+            scheduleBegin(1000)
         }
-    }
-
-    private var savedMusicVol = -1
-    private var savedSystemVol = -1
-
-    private fun muteRecognizerBeep() {
-        try {
-            // Save and zero out both streams Samsung uses for the recognition beep
-            savedMusicVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            savedSystemVol = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
-            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0)
-            handler.postDelayed({ restoreVolume() }, MUTE_DURATION_MS)
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not mute recognition sound", e)
-        }
-    }
-
-    private fun restoreVolume() {
-        try {
-            if (savedMusicVol >= 0) audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedMusicVol, 0)
-            if (savedSystemVol >= 0) audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, savedSystemVol, 0)
-        } catch (e: Exception) { }
     }
 
     private val recognitionListener = object : RecognitionListener {
+
         override fun onReadyForSpeech(params: Bundle?) {
             isListening = true
-            // Restore volume now that the beep window has passed
-            handler.removeCallbacksAndMessages(null)
-            restoreVolume()
         }
 
         override fun onRmsChanged(rmsdB: Float) {
-            // This is the heart of VAD: monitor real-time audio level
             if (rmsdB > SPEAKING_RMS_THRESHOLD) {
-                // Audio detected — person is speaking, cancel any pending commit
-                if (!personIsSpeaking) {
-                    personIsSpeaking = true
-                }
+                personIsSpeaking = true
                 silenceHandler.removeCallbacks(silenceCommitRunnable)
             } else if (personIsSpeaking && latestPartialText.isNotBlank()) {
-                // Audio dropped — person may have paused
-                // Start silence timer only if not already running
                 silenceHandler.removeCallbacks(silenceCommitRunnable)
                 silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
             }
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
-            val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            val text = matches?.firstOrNull()?.trim() ?: return
+            val text = partialResults
+                ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                ?.firstOrNull()?.trim() ?: return
             if (text.isNotBlank()) {
                 latestPartialText = text
-                // Reset the silence timer every time new partial text arrives
                 if (personIsSpeaking) {
                     silenceHandler.removeCallbacks(silenceCommitRunnable)
                     silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
@@ -199,10 +187,9 @@ class SpeechRecognitionManager(
 
         override fun onResults(results: Bundle?) {
             isListening = false
-            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            val text = matches?.firstOrNull()?.trim() ?: ""
-
-            // Commit whatever we have (final result from recognizer)
+            val text = results
+                ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                ?.firstOrNull()?.trim() ?: ""
             silenceHandler.removeCallbacks(silenceCommitRunnable)
             val toCommit = if (text.isNotBlank()) text else latestPartialText.trim()
             if (toCommit.isNotBlank()) {
@@ -210,8 +197,7 @@ class SpeechRecognitionManager(
                 personIsSpeaking = false
                 callback.onResult(toCommit)
             }
-
-            scheduleBeginListening()
+            scheduleBegin()
         }
 
         override fun onError(error: Int) {
@@ -219,7 +205,6 @@ class SpeechRecognitionManager(
             when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH,
                 SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                    // Commit anything accumulated before restarting
                     val accumulated = latestPartialText.trim()
                     if (accumulated.isNotBlank()) {
                         silenceHandler.removeCallbacks(silenceCommitRunnable)
@@ -227,22 +212,20 @@ class SpeechRecognitionManager(
                         personIsSpeaking = false
                         callback.onResult(accumulated)
                     }
-                    scheduleBeginListening()
+                    scheduleBegin()
                 }
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> {
-                    scheduleBeginListening(2000)
-                }
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> scheduleBegin(2000)
                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> {
                     callback.onError("Microphone permission required")
-                    isDestroyed = true
+                    isActive = false
                 }
                 SpeechRecognizer.ERROR_CLIENT -> {
                     initializeRecognizer()
-                    scheduleBeginListening(1000)
+                    scheduleBegin(800)
                 }
                 else -> {
                     Log.w(TAG, "Recognition error: $error")
-                    scheduleBeginListening()
+                    scheduleBegin()
                 }
             }
         }
@@ -252,11 +235,7 @@ class SpeechRecognitionManager(
             silenceHandler.removeCallbacks(silenceCommitRunnable)
         }
 
-        override fun onEndOfSpeech() {
-            isListening = false
-            // Don't commit immediately — wait for silence timer to fire
-        }
-
+        override fun onEndOfSpeech() { isListening = false }
         override fun onBufferReceived(buffer: ByteArray?) {}
         override fun onEvent(eventType: Int, params: Bundle?) {}
     }
