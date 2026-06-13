@@ -40,7 +40,7 @@ class OverlayManager(private val context: Context) {
         binding = OverlayTranslatorBinding.inflate(LayoutInflater.from(themedContext))
         overlayView = binding.root
 
-        val widthPx = (135 * context.resources.displayMetrics.density).toInt()
+        val widthPx = (180 * context.resources.displayMetrics.density).toInt()
         layoutParams = WindowManager.LayoutParams(
             widthPx,
             WindowManager.LayoutParams.WRAP_CONTENT,

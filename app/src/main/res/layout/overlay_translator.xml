@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardOverlay"
-    android:layout_width="135dp"
+    android:layout_width="180dp"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@color/overlay_bg"
     app:cardCornerRadius="18dp"
