@@ -3,6 +3,7 @@ package com.realtimetranslator
 import android.content.Context
 import android.graphics.PixelFormat
 import android.view.Gravity
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -35,7 +36,8 @@ class OverlayManager(private val context: Context) {
     fun show() {
         if (isShowing) return
 
-        val inflater = LayoutInflater.from(context)
+        val themedContext = ContextThemeWrapper(context, R.style.Theme_RealTimeTranslator)
+        val inflater = LayoutInflater.from(themedContext)
         binding = OverlayTranslatorBinding.inflate(inflater)
         overlayView = binding.root
 

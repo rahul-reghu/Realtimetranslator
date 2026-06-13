@@ -88,7 +88,7 @@
                     android:layout_height="40dp"
                     android:src="@android:drawable/ic_lock_silent_mode_off"
                     android:tint="#FFFFFF"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Speak translation"
                     android:padding="8dp" />
 
@@ -99,7 +99,7 @@
                     android:layout_height="40dp"
                     android:src="@android:drawable/ic_menu_rotate"
                     android:tint="#FFFFFF"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Swap language direction"
                     android:padding="8dp" />
 
@@ -116,7 +116,7 @@
                     android:layout_height="40dp"
                     android:src="@android:drawable/arrow_up_float"
                     android:tint="#FFFFFF"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Minimize"
                     android:padding="8dp" />
 
@@ -127,7 +127,7 @@
                     android:layout_height="40dp"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
                     android:tint="#FF6B6B"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Close overlay"
                     android:padding="8dp" />
 
