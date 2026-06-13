@@ -19,7 +19,7 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Drag Handle + top row -->
+            <!-- Drag Handle + top-right controls -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
                     android:layout_marginStart="4dp" />
             </LinearLayout>
 
-            <!-- TAP TO LISTEN button — the main control -->
+            <!-- TAP TO LISTEN / TRANSLATE button -->
             <Button
                 android:id="@+id/btnListenToggle"
                 android:layout_width="match_parent"
@@ -65,16 +65,27 @@
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:backgroundTint="#FF2E7D32"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Language swap button -->
+            <Button
+                android:id="@+id/btnSwapLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:text="ZH → EN  ⇄  tap to swap"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#33FFFFFF"
                 android:layout_marginBottom="10dp" />
 
-            <!-- Source Text (what was heard) -->
+            <!-- Source Text (live preview of what's being heard) -->
             <TextView
                 android:id="@+id/tvSourceText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/listening"
                 android:textColor="#99FFFFFF"
-                android:textColorHint="#66FFFFFF"
+                android:textColorHint="#55FFFFFF"
                 android:textSize="12sp"
                 android:maxLines="3"
                 android:ellipsize="end"
@@ -86,8 +97,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="↓"
-                android:textColor="#66FFFFFF"
-                android:textSize="14sp"
+                android:textColor="#55FFFFFF"
+                android:textSize="12sp"
                 android:layout_marginBottom="4dp" />
 
             <!-- Translated Text -->
@@ -109,7 +120,7 @@
                 android:background="#33FFFFFF"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Bottom Row: TTS + Swap -->
+            <!-- Bottom Row: TTS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -126,27 +137,13 @@
                     android:contentDescription="Speak translation"
                     android:padding="8dp" />
 
-                <ImageButton
-                    android:id="@+id/btnSwapLanguage"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/ic_menu_rotate"
-                    android:tint="#FFFFFF"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Swap language"
-                    android:padding="8dp" />
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
                 <TextView
-                    android:id="@+id/tvLanguageLabel"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="ZH → EN"
-                    android:textColor="#99FFFFFF"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="Tap speaker to hear translation"
+                    android:textColor="#55FFFFFF"
                     android:textSize="11sp" />
 
             </LinearLayout>

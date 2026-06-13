@@ -2,6 +2,7 @@ package com.realtimetranslator
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.PixelFormat
 import android.view.ContextThemeWrapper
 import android.view.Gravity
@@ -19,12 +20,13 @@ class OverlayManager(private val context: Context) {
     private var isMinimized = false
     private var isShowing = false
     private var isListening = false
+    private var currentLanguageLabel = "ZH → EN"
     private lateinit var layoutParams: WindowManager.LayoutParams
-    private var lastTranslatedText: String = ""
+    private var lastTranslatedText = ""
 
     var onTtsRequested: ((String) -> Unit)? = null
     var onLanguageToggled: (() -> Unit)? = null
-    var onListenToggled: ((Boolean) -> Unit)? = null  // true = start listening, false = stop
+    var onListenToggled: ((Boolean) -> Unit)? = null
 
     private var initialX = 0
     private var initialY = 0
@@ -35,8 +37,7 @@ class OverlayManager(private val context: Context) {
         if (isShowing) return
 
         val themedContext = ContextThemeWrapper(context, R.style.Theme_RealTimeTranslator)
-        val inflater = LayoutInflater.from(themedContext)
-        binding = OverlayTranslatorBinding.inflate(inflater)
+        binding = OverlayTranslatorBinding.inflate(LayoutInflater.from(themedContext))
         overlayView = binding.root
 
         layoutParams = WindowManager.LayoutParams(
@@ -54,7 +55,7 @@ class OverlayManager(private val context: Context) {
         setupDragListener()
         setupButtons()
         updateListenButton()
-        updateLanguageLabel()
+        refreshSwapButton()
 
         windowManager.addView(overlayView, layoutParams)
         isShowing = true
@@ -83,10 +84,15 @@ class OverlayManager(private val context: Context) {
         }
     }
 
-    fun updateLanguageLabel(label: String = "ZH → EN") {
+    fun updateLanguageLabel(label: String) {
+        currentLanguageLabel = label
         if (::binding.isInitialized) {
-            overlayView?.post { binding.tvLanguageLabel.text = label }
+            overlayView?.post { refreshSwapButton() }
         }
+    }
+
+    private fun refreshSwapButton() {
+        binding.btnSwapLanguage.text = "$currentLanguageLabel  ⇄  tap to swap"
     }
 
     private fun setupDragListener() {
@@ -117,14 +123,12 @@ class OverlayManager(private val context: Context) {
             onListenToggled?.invoke(isListening)
         }
 
-        binding.btnTts.setOnClickListener {
-            if (lastTranslatedText.isNotEmpty()) {
-                onTtsRequested?.invoke(lastTranslatedText)
-            }
-        }
-
         binding.btnSwapLanguage.setOnClickListener {
             onLanguageToggled?.invoke()
+        }
+
+        binding.btnTts.setOnClickListener {
+            if (lastTranslatedText.isNotEmpty()) onTtsRequested?.invoke(lastTranslatedText)
         }
 
         binding.btnMinimize.setOnClickListener {
@@ -133,10 +137,9 @@ class OverlayManager(private val context: Context) {
 
         binding.btnClose.setOnClickListener {
             remove()
-            val stopIntent = Intent(TranslatorService.ACTION_STOP_TRANSLATION).apply {
-                setPackage(context.packageName)
-            }
-            context.sendBroadcast(stopIntent)
+            context.sendBroadcast(
+                Intent(TranslatorService.ACTION_STOP_TRANSLATION).apply { setPackage(context.packageName) }
+            )
         }
     }
 
@@ -144,12 +147,10 @@ class OverlayManager(private val context: Context) {
         if (!::binding.isInitialized) return
         if (isListening) {
             binding.btnListenToggle.text = "🎙 LISTENING — TAP TO TRANSLATE"
-            binding.btnListenToggle.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(0xFFC62828.toInt())
+            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFFC62828.toInt())
         } else {
             binding.btnListenToggle.text = "TAP TO LISTEN"
-            binding.btnListenToggle.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(0xFF2E7D32.toInt())
+            binding.btnListenToggle.backgroundTintList = ColorStateList.valueOf(0xFF2E7D32.toInt())
         }
     }
 
@@ -159,7 +160,6 @@ class OverlayManager(private val context: Context) {
         binding.tvTranslatedText.visibility = View.GONE
         binding.btnTts.visibility = View.GONE
         binding.btnSwapLanguage.visibility = View.GONE
-        binding.tvLanguageLabel.visibility = View.GONE
         binding.btnMinimize.setImageResource(android.R.drawable.arrow_down_float)
     }
 
@@ -169,7 +169,6 @@ class OverlayManager(private val context: Context) {
         binding.tvTranslatedText.visibility = View.VISIBLE
         binding.btnTts.visibility = View.VISIBLE
         binding.btnSwapLanguage.visibility = View.VISIBLE
-        binding.tvLanguageLabel.visibility = View.VISIBLE
         binding.btnMinimize.setImageResource(android.R.drawable.arrow_up_float)
     }
 }
