@@ -51,7 +51,6 @@ class TranslatorService : LifecycleService() {
         ) ?: SettingsActivity.DIRECTION_ZH_TO_EN
 
         createNotificationChannel()
-
         try {
             registerReceiver(
                 stopReceiver,
@@ -59,32 +58,22 @@ class TranslatorService : LifecycleService() {
                 RECEIVER_NOT_EXPORTED
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to register receiver", e)
+            Log.e(TAG, "Receiver registration failed", e)
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
-        // Must call startForeground immediately
         startForeground(NOTIFICATION_ID, buildNotification())
-
-        // Delay initialization slightly to let the service settle
         handler.postDelayed({ initializeComponents() }, 500)
-
         return START_STICKY
     }
 
     private fun initializeComponents() {
-        try {
-            ttsManager = TextToSpeechManager(this)
-        } catch (e: Exception) {
+        try { ttsManager = TextToSpeechManager(this) } catch (e: Exception) {
             Log.e(TAG, "TTS init failed", e)
         }
-
-        try {
-            translationManager = TranslationManager(currentDirection)
-        } catch (e: Exception) {
+        try { translationManager = TranslationManager(currentDirection) } catch (e: Exception) {
             Log.e(TAG, "Translation init failed", e)
         }
 
@@ -95,27 +84,37 @@ class TranslatorService : LifecycleService() {
                         Locale.ENGLISH else Locale.CHINESE
                     ttsManager?.speak(text, locale)
                 }
+                onListenToggled = { shouldListen ->
+                    if (shouldListen) {
+                        speechManager?.startListening(getSourceLanguageCode())
+                    } else {
+                        speechManager?.pause()
+                    }
+                }
                 onLanguageToggled = {
                     currentDirection = if (currentDirection == SettingsActivity.DIRECTION_ZH_TO_EN)
-                        SettingsActivity.DIRECTION_EN_TO_ZH
-                    else
-                        SettingsActivity.DIRECTION_ZH_TO_EN
+                        SettingsActivity.DIRECTION_EN_TO_ZH else SettingsActivity.DIRECTION_ZH_TO_EN
                     prefs.edit().putString(SettingsActivity.KEY_LANGUAGE_DIRECTION, currentDirection).apply()
                     translationManager?.updateDirection(currentDirection)
                     speechManager?.updateLanguage(getSourceLanguageCode())
+                    val label = if (currentDirection == SettingsActivity.DIRECTION_ZH_TO_EN) "ZH → EN" else "EN → ZH"
+                    updateLanguageLabel(label)
                 }
             }
             overlayManager?.show()
+            overlayManager?.updateLanguageLabel(
+                if (currentDirection == SettingsActivity.DIRECTION_ZH_TO_EN) "ZH → EN" else "EN → ZH"
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Overlay init failed", e)
             Toast.makeText(this, "Overlay failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
 
-        // Delay speech start further to avoid conflicts with overlay init
-        handler.postDelayed({ startSpeechRecognition() }, 1000)
+        // Create speech manager but don't start — user taps "TAP TO LISTEN" first
+        handler.postDelayed({ createSpeechManager() }, 1000)
     }
 
-    private fun startSpeechRecognition() {
+    private fun createSpeechManager() {
         try {
             speechManager = SpeechRecognitionManager(
                 this,
@@ -143,13 +142,15 @@ class TranslatorService : LifecycleService() {
                     }
                 }
             )
-            speechManager?.startListening(getSourceLanguageCode())
             broadcastServiceState(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Speech recognition init failed", e)
-            Toast.makeText(this, "Speech recognition failed: ${e.message}", Toast.LENGTH_LONG).show()
-            broadcastServiceState(true) // still mark as running (overlay works without STT)
+            Log.e(TAG, "Speech manager init failed", e)
+            broadcastServiceState(true)
         }
+    }
+
+    private fun updateLanguageLabel(label: String) {
+        overlayManager?.updateLanguageLabel(label)
     }
 
     override fun onDestroy() {
@@ -164,9 +165,10 @@ class TranslatorService : LifecycleService() {
     }
 
     private fun broadcastServiceState(running: Boolean) {
-        val intent = Intent(ACTION_SERVICE_STATE).apply { setPackage(packageName) }
-        intent.putExtra(EXTRA_RUNNING, running)
-        sendBroadcast(intent)
+        sendBroadcast(Intent(ACTION_SERVICE_STATE).apply {
+            setPackage(packageName)
+            putExtra(EXTRA_RUNNING, running)
+        })
     }
 
     private fun getSourceLanguageCode() =
@@ -183,9 +185,9 @@ class TranslatorService : LifecycleService() {
     }
 
     private fun buildNotification(): Notification {
-        val stopIntent = Intent(ACTION_STOP_TRANSLATION).apply { setPackage(packageName) }
         val stopPendingIntent = PendingIntent.getBroadcast(
-            this, 0, stopIntent,
+            this, 0,
+            Intent(ACTION_STOP_TRANSLATION).apply { setPackage(packageName) },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val openPendingIntent = PendingIntent.getActivity(
@@ -194,7 +196,7 @@ class TranslatorService : LifecycleService() {
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Translator Active")
-            .setContentText("Real-time translation is running")
+            .setContentText("Tap overlay to start listening")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(openPendingIntent)
             .addAction(android.R.drawable.ic_delete, "Stop", stopPendingIntent)

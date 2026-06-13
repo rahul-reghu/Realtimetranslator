@@ -1,32 +1,30 @@
 package com.realtimetranslator
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.PixelFormat
-import android.view.Gravity
 import android.view.ContextThemeWrapper
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.ImageButton
-import android.widget.TextView
 import com.realtimetranslator.databinding.OverlayTranslatorBinding
 
 class OverlayManager(private val context: Context) {
 
-    private val windowManager: WindowManager =
-        context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
+    private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private lateinit var binding: OverlayTranslatorBinding
     private var overlayView: View? = null
     private var isMinimized = false
     private var isShowing = false
-
+    private var isListening = false
     private lateinit var layoutParams: WindowManager.LayoutParams
     private var lastTranslatedText: String = ""
 
     var onTtsRequested: ((String) -> Unit)? = null
     var onLanguageToggled: (() -> Unit)? = null
+    var onListenToggled: ((Boolean) -> Unit)? = null  // true = start listening, false = stop
 
     private var initialX = 0
     private var initialY = 0
@@ -53,24 +51,18 @@ class OverlayManager(private val context: Context) {
             y = 100
         }
 
-        setupTouchListener()
+        setupDragListener()
         setupButtons()
+        updateListenButton()
+        updateLanguageLabel()
 
         windowManager.addView(overlayView, layoutParams)
         isShowing = true
     }
 
-    fun hide() {
-        overlayView?.visibility = View.GONE
-    }
-
     fun remove() {
         if (!isShowing) return
-        try {
-            windowManager.removeView(overlayView)
-        } catch (e: Exception) {
-            // View may already be removed
-        }
+        try { windowManager.removeView(overlayView) } catch (e: Exception) { }
         isShowing = false
         overlayView = null
     }
@@ -80,13 +72,17 @@ class OverlayManager(private val context: Context) {
             binding.tvSourceText.text = source
             binding.tvTranslatedText.text = translated
             lastTranslatedText = translated
-            if (isMinimized) {
-                expandOverlay()
-            }
+            if (isMinimized) expandOverlay()
         }
     }
 
-    private fun setupTouchListener() {
+    fun updateLanguageLabel(label: String = "ZH → EN") {
+        if (::binding.isInitialized) {
+            overlayView?.post { binding.tvLanguageLabel.text = label }
+        }
+    }
+
+    private fun setupDragListener() {
         binding.dragHandle.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -102,13 +98,18 @@ class OverlayManager(private val context: Context) {
                     windowManager.updateViewLayout(overlayView, layoutParams)
                     true
                 }
-                MotionEvent.ACTION_UP -> true
                 else -> false
             }
         }
     }
 
     private fun setupButtons() {
+        binding.btnListenToggle.setOnClickListener {
+            isListening = !isListening
+            updateListenButton()
+            onListenToggled?.invoke(isListening)
+        }
+
         binding.btnTts.setOnClickListener {
             if (lastTranslatedText.isNotEmpty()) {
                 onTtsRequested?.invoke(lastTranslatedText)
@@ -120,18 +121,28 @@ class OverlayManager(private val context: Context) {
         }
 
         binding.btnMinimize.setOnClickListener {
-            if (isMinimized) {
-                expandOverlay()
-            } else {
-                minimizeOverlay()
-            }
+            if (isMinimized) expandOverlay() else minimizeOverlay()
         }
 
         binding.btnClose.setOnClickListener {
             remove()
-            // Stop the service
-            val stopIntent = android.content.Intent(TranslatorService.ACTION_STOP_TRANSLATION)
+            val stopIntent = Intent(TranslatorService.ACTION_STOP_TRANSLATION).apply {
+                setPackage(context.packageName)
+            }
             context.sendBroadcast(stopIntent)
+        }
+    }
+
+    private fun updateListenButton() {
+        if (!::binding.isInitialized) return
+        if (isListening) {
+            binding.btnListenToggle.text = "🎙 LISTENING — TAP TO PAUSE"
+            binding.btnListenToggle.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(0xFFC62828.toInt())
+        } else {
+            binding.btnListenToggle.text = "TAP TO LISTEN"
+            binding.btnListenToggle.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(0xFF2E7D32.toInt())
         }
     }
 
@@ -139,19 +150,19 @@ class OverlayManager(private val context: Context) {
         isMinimized = true
         binding.tvSourceText.visibility = View.GONE
         binding.tvTranslatedText.visibility = View.GONE
-        binding.divider.visibility = View.GONE
         binding.btnTts.visibility = View.GONE
         binding.btnSwapLanguage.visibility = View.GONE
-        binding.btnMinimize.setImageResource(android.R.drawable.arrow_up_float)
+        binding.tvLanguageLabel.visibility = View.GONE
+        binding.btnMinimize.setImageResource(android.R.drawable.arrow_down_float)
     }
 
     private fun expandOverlay() {
         isMinimized = false
         binding.tvSourceText.visibility = View.VISIBLE
         binding.tvTranslatedText.visibility = View.VISIBLE
-        binding.divider.visibility = View.VISIBLE
         binding.btnTts.visibility = View.VISIBLE
         binding.btnSwapLanguage.visibility = View.VISIBLE
-        binding.btnMinimize.setImageResource(android.R.drawable.arrow_down_float)
+        binding.tvLanguageLabel.visibility = View.VISIBLE
+        binding.btnMinimize.setImageResource(android.R.drawable.arrow_up_float)
     }
 }

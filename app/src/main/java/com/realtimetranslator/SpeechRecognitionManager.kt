@@ -61,6 +61,7 @@ class SpeechRecognitionManager(
     }
 
     fun startListening(languageCode: String) {
+        if (isDestroyed) { resume(languageCode); return }
         currentLanguageCode = languageCode
         isDestroyed = false
         initializeRecognizer()
@@ -73,6 +74,20 @@ class SpeechRecognitionManager(
             speechRecognizer?.stopListening()
             scheduleBeginListening(600)
         }
+    }
+
+    fun pause() {
+        isDestroyed = true
+        handler.removeCallbacksAndMessages(null)
+        silenceHandler.removeCallbacksAndMessages(null)
+        speechRecognizer?.cancel()
+        isListening = false
+    }
+
+    fun resume(languageCode: String = currentLanguageCode) {
+        isDestroyed = false
+        currentLanguageCode = languageCode
+        scheduleBeginListening(300)
     }
 
     fun destroy() {

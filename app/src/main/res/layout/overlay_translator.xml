@@ -19,15 +19,53 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Drag Handle -->
-            <View
-                android:id="@+id/dragHandle"
-                android:layout_width="30dp"
-                android:layout_height="4dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:background="#66FFFFFF"
-                android:backgroundTint="#66FFFFFF" />
+            <!-- Drag Handle + top row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <View
+                    android:id="@+id/dragHandle"
+                    android:layout_width="0dp"
+                    android:layout_height="4dp"
+                    android:layout_weight="1"
+                    android:background="#66FFFFFF" />
+
+                <ImageButton
+                    android:id="@+id/btnMinimize"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/arrow_up_float"
+                    android:tint="#FFFFFF"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Minimize"
+                    android:layout_marginStart="8dp" />
+
+                <ImageButton
+                    android:id="@+id/btnClose"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:tint="#FF6B6B"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Close"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- TAP TO LISTEN button — the main control -->
+            <Button
+                android:id="@+id/btnListenToggle"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="TAP TO LISTEN"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:backgroundTint="#FF2E7D32"
+                android:layout_marginBottom="10dp" />
 
             <!-- Source Text (what was heard) -->
             <TextView
@@ -38,17 +76,16 @@
                 android:textColor="#99FFFFFF"
                 android:textColorHint="#66FFFFFF"
                 android:textSize="12sp"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:ellipsize="end"
                 android:layout_marginBottom="4dp" />
 
             <!-- Arrow -->
             <TextView
-                android:id="@+id/tvArrow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="→"
+                android:text="↓"
                 android:textColor="#66FFFFFF"
                 android:textSize="14sp"
                 android:layout_marginBottom="4dp" />
@@ -58,30 +95,27 @@
                 android:id="@+id/tvTranslatedText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="60dp"
+                android:minHeight="48dp"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp" />
 
             <!-- Divider -->
             <View
-                android:id="@+id/divider"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="#33FFFFFF"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Bottom Row Buttons -->
+            <!-- Bottom Row: TTS + Swap -->
             <LinearLayout
-                android:id="@+id/bottomRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <!-- TTS Button -->
                 <ImageButton
                     android:id="@+id/btnTts"
                     android:layout_width="40dp"
@@ -92,7 +126,6 @@
                     android:contentDescription="Speak translation"
                     android:padding="8dp" />
 
-                <!-- Swap Language Button -->
                 <ImageButton
                     android:id="@+id/btnSwapLanguage"
                     android:layout_width="40dp"
@@ -100,36 +133,21 @@
                     android:src="@android:drawable/ic_menu_rotate"
                     android:tint="#FFFFFF"
                     android:background="@android:color/transparent"
-                    android:contentDescription="Swap language direction"
+                    android:contentDescription="Swap language"
                     android:padding="8dp" />
 
-                <!-- Spacer -->
                 <Space
                     android:layout_width="0dp"
                     android:layout_height="1dp"
                     android:layout_weight="1" />
 
-                <!-- Minimize Button -->
-                <ImageButton
-                    android:id="@+id/btnMinimize"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/arrow_up_float"
-                    android:tint="#FFFFFF"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Minimize"
-                    android:padding="8dp" />
-
-                <!-- Close Button -->
-                <ImageButton
-                    android:id="@+id/btnClose"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:tint="#FF6B6B"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Close overlay"
-                    android:padding="8dp" />
+                <TextView
+                    android:id="@+id/tvLanguageLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ZH → EN"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="11sp" />
 
             </LinearLayout>
 
