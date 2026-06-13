@@ -11,65 +11,87 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 
+/**
+ * Manual-commit speech recognition.
+ *
+ * While active (user tapped "Listen"), it continuously captures speech and
+ * accumulates every recognized segment into a buffer. Nothing is translated
+ * until the user taps "Stop", at which point the entire accumulated text is
+ * delivered via [SpeechCallback.onResult]. Live in-progress text is reported
+ * through [SpeechCallback.onPreview] so the user can see what's being heard.
+ */
 class SpeechRecognitionManager(
     private val context: Context,
     private val callback: SpeechCallback
 ) {
 
     interface SpeechCallback {
+        /** Called once, with the full accumulated text, when the user stops. */
         fun onResult(text: String)
+        /** Called continuously with live captured text (for on-screen preview). */
+        fun onPreview(text: String)
         fun onError(message: String)
     }
 
     companion object {
         private const val TAG = "SpeechManager"
-        private const val SPEAKING_RMS_THRESHOLD = 0.5f
-        private const val SILENCE_TO_COMMIT_MS = 1500L
-        private const val RESTART_DELAY_MS = 400L
+        private const val RESTART_DELAY_MS = 300L
     }
 
     private var speechRecognizer: SpeechRecognizer? = null
     private var currentLanguageCode = "zh-CN"
     private var isListening = false
-    private var isActive = false   // true = user tapped "listen", false = paused
+    private var isActive = false   // true = user tapped "listen", false = stopped
 
-    private var personIsSpeaking = false
+    // Finalized segments from completed recognition sessions, joined together.
+    private var accumulatedText = ""
+    // Text from the in-progress recognition session (not yet finalized).
     private var latestPartialText = ""
 
     private val handler = Handler(Looper.getMainLooper())
-    private val silenceHandler = Handler(Looper.getMainLooper())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    // Saved volumes — set to 0 while session is active, restored on pause/destroy
     private var savedMusicVol = -1
     private var savedSystemVol = -1
 
-    private val silenceCommitRunnable = Runnable {
-        val text = latestPartialText.trim()
-        if (text.isNotBlank()) {
-            latestPartialText = ""
-            personIsSpeaking = false
-            callback.onResult(text)
-        }
-    }
-
     // ── Public API ────────────────────────────────────────────────────────────
 
+    /** Start listening. Clears any previously accumulated text. */
     fun startListening(languageCode: String) {
         currentLanguageCode = languageCode
         isActive = true
-        muteForSession()          // silence beep for entire session
+        accumulatedText = ""
+        latestPartialText = ""
+        muteForSession()
         initializeRecognizer()
         scheduleBegin(300)
     }
 
+    /**
+     * Stop listening and deliver the full accumulated transcript for translation.
+     */
+    fun stopAndCommit() {
+        isActive = false
+        isListening = false
+        handler.removeCallbacksAndMessages(null)
+        speechRecognizer?.cancel()
+        restoreVolume()
+
+        val full = buildFullText()
+        accumulatedText = ""
+        latestPartialText = ""
+        if (full.isNotBlank()) {
+            callback.onResult(full)
+        }
+    }
+
+    /** Stop listening without translating (used internally / on language change). */
     fun pause() {
         isActive = false
         isListening = false
         handler.removeCallbacksAndMessages(null)
-        silenceHandler.removeCallbacksAndMessages(null)
         speechRecognizer?.cancel()
-        restoreVolume()           // restore volume when user pauses
+        restoreVolume()
     }
 
     fun updateLanguage(languageCode: String) {
@@ -83,12 +105,14 @@ class SpeechRecognitionManager(
     fun destroy() {
         isActive = false
         handler.removeCallbacksAndMessages(null)
-        silenceHandler.removeCallbacksAndMessages(null)
         speechRecognizer?.destroy()
         speechRecognizer = null
         isListening = false
         restoreVolume()
     }
+
+    private fun buildFullText(): String =
+        (accumulatedText + " " + latestPartialText).trim().replace(Regex("\\s+"), " ")
 
     // ── Volume management ─────────────────────────────────────────────────────
 
@@ -155,21 +179,18 @@ class SpeechRecognitionManager(
         }
     }
 
+    /** Push the current live transcript to the preview callback. */
+    private fun emitPreview() {
+        callback.onPreview(buildFullText())
+    }
+
     private val recognitionListener = object : RecognitionListener {
 
         override fun onReadyForSpeech(params: Bundle?) {
             isListening = true
         }
 
-        override fun onRmsChanged(rmsdB: Float) {
-            if (rmsdB > SPEAKING_RMS_THRESHOLD) {
-                personIsSpeaking = true
-                silenceHandler.removeCallbacks(silenceCommitRunnable)
-            } else if (personIsSpeaking && latestPartialText.isNotBlank()) {
-                silenceHandler.removeCallbacks(silenceCommitRunnable)
-                silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
-            }
-        }
+        override fun onRmsChanged(rmsdB: Float) {}
 
         override fun onPartialResults(partialResults: Bundle?) {
             val text = partialResults
@@ -177,9 +198,7 @@ class SpeechRecognitionManager(
                 ?.firstOrNull()?.trim() ?: return
             if (text.isNotBlank()) {
                 latestPartialText = text
-                personIsSpeaking = true
-                silenceHandler.removeCallbacks(silenceCommitRunnable)
-                silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
+                emitPreview()
             }
         }
 
@@ -188,14 +207,14 @@ class SpeechRecognitionManager(
             val text = results
                 ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull()?.trim() ?: ""
-            silenceHandler.removeCallbacks(silenceCommitRunnable)
-            val toCommit = if (text.isNotBlank()) text else latestPartialText.trim()
-            if (toCommit.isNotBlank()) {
-                latestPartialText = ""
-                personIsSpeaking = false
-                callback.onResult(toCommit)
+            // A recognition session completed — append its final text to the buffer.
+            val finalSegment = if (text.isNotBlank()) text else latestPartialText.trim()
+            if (finalSegment.isNotBlank()) {
+                accumulatedText = (accumulatedText + " " + finalSegment).trim()
             }
-            scheduleBegin()
+            latestPartialText = ""
+            emitPreview()
+            scheduleBegin()   // keep listening — don't translate yet
         }
 
         override fun onError(error: Int) {
@@ -203,12 +222,11 @@ class SpeechRecognitionManager(
             when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH,
                 SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                    val accumulated = latestPartialText.trim()
-                    if (accumulated.isNotBlank()) {
-                        silenceHandler.removeCallbacks(silenceCommitRunnable)
+                    // Silence — preserve the in-progress text into the buffer, restart.
+                    if (latestPartialText.isNotBlank()) {
+                        accumulatedText = (accumulatedText + " " + latestPartialText.trim()).trim()
                         latestPartialText = ""
-                        personIsSpeaking = false
-                        callback.onResult(accumulated)
+                        emitPreview()
                     }
                     scheduleBegin()
                 }
@@ -228,20 +246,8 @@ class SpeechRecognitionManager(
             }
         }
 
-        override fun onBeginningOfSpeech() {
-            personIsSpeaking = true
-            silenceHandler.removeCallbacks(silenceCommitRunnable)
-        }
-
-        override fun onEndOfSpeech() {
-            isListening = false
-            // Person stopped speaking — start silence timer regardless of VAD state
-            if (latestPartialText.isNotBlank()) {
-                personIsSpeaking = true
-                silenceHandler.removeCallbacks(silenceCommitRunnable)
-                silenceHandler.postDelayed(silenceCommitRunnable, SILENCE_TO_COMMIT_MS)
-            }
-        }
+        override fun onBeginningOfSpeech() {}
+        override fun onEndOfSpeech() { isListening = false }
         override fun onBufferReceived(buffer: ByteArray?) {}
         override fun onEvent(eventType: Int, params: Bundle?) {}
     }

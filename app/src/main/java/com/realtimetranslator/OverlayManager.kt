@@ -76,6 +76,13 @@ class OverlayManager(private val context: Context) {
         }
     }
 
+    fun updateSourcePreview(text: String) {
+        overlayView?.post {
+            binding.tvSourceText.text = text
+            if (isMinimized) expandOverlay()
+        }
+    }
+
     fun updateLanguageLabel(label: String = "ZH → EN") {
         if (::binding.isInitialized) {
             overlayView?.post { binding.tvLanguageLabel.text = label }
@@ -136,7 +143,7 @@ class OverlayManager(private val context: Context) {
     private fun updateListenButton() {
         if (!::binding.isInitialized) return
         if (isListening) {
-            binding.btnListenToggle.text = "🎙 LISTENING — TAP TO PAUSE"
+            binding.btnListenToggle.text = "🎙 LISTENING — TAP TO TRANSLATE"
             binding.btnListenToggle.backgroundTintList =
                 android.content.res.ColorStateList.valueOf(0xFFC62828.toInt())
         } else {

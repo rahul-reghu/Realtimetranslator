@@ -86,9 +86,11 @@ class TranslatorService : LifecycleService() {
                 }
                 onListenToggled = { shouldListen ->
                     if (shouldListen) {
+                        overlayManager?.updateTranslation("", "")
                         speechManager?.startListening(getSourceLanguageCode())
                     } else {
-                        speechManager?.pause()
+                        // Stopping → translate everything captured so far
+                        speechManager?.stopAndCommit()
                     }
                 }
                 onLanguageToggled = {
@@ -135,6 +137,11 @@ class TranslatorService : LifecycleService() {
                                 Log.e(TAG, "Translation failed", ex)
                             }
                         )
+                    }
+
+                    override fun onPreview(text: String) {
+                        // Show live captured text in the overlay's source field
+                        overlayManager?.updateSourcePreview(text)
                     }
 
                     override fun onError(message: String) {
