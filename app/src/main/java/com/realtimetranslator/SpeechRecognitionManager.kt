@@ -53,6 +53,8 @@ class SpeechRecognitionManager(
 
     private var savedMusicVol = -1
     private var savedSystemVol = -1
+    private var savedRingVol = -1
+    private var savedNotifVol = -1
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -118,10 +120,15 @@ class SpeechRecognitionManager(
 
     private fun muteForSession() {
         try {
-            savedMusicVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            // Mute every stream Samsung could route the recognition beep through
+            savedMusicVol  = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
             savedSystemVol = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
-            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0)
+            savedRingVol   = audioManager.getStreamVolume(AudioManager.STREAM_RING)
+            savedNotifVol  = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,        0, 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM,       0, 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_RING,         0, 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0)
         } catch (e: Exception) {
             Log.w(TAG, "Could not mute streams", e)
         }
@@ -129,14 +136,10 @@ class SpeechRecognitionManager(
 
     private fun restoreVolume() {
         try {
-            if (savedMusicVol >= 0) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedMusicVol, 0)
-                savedMusicVol = -1
-            }
-            if (savedSystemVol >= 0) {
-                audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, savedSystemVol, 0)
-                savedSystemVol = -1
-            }
+            if (savedMusicVol  >= 0) { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,        savedMusicVol,  0); savedMusicVol  = -1 }
+            if (savedSystemVol >= 0) { audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM,       savedSystemVol, 0); savedSystemVol = -1 }
+            if (savedRingVol   >= 0) { audioManager.setStreamVolume(AudioManager.STREAM_RING,         savedRingVol,   0); savedRingVol   = -1 }
+            if (savedNotifVol  >= 0) { audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotifVol,  0); savedNotifVol  = -1 }
         } catch (e: Exception) {
             Log.w(TAG, "Could not restore volume", e)
         }
