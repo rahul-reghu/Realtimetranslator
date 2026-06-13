@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">实时翻译器</string>
+    <string name="app_subtitle">实时翻译对话</string>
+    <string name="start_translator">启动翻译器</string>
+    <string name="stop_translator">停止翻译器</string>
+    <string name="settings">设置</string>
+    <string name="permissions_required">需要权限</string>
+    <string name="permission_microphone">麦克风权限</string>
+    <string name="permission_notifications">通知权限</string>
+    <string name="permission_overlay">悬浮窗权限</string>
+    <string name="grant_mic_notif">授予麦克风和通知权限</string>
+    <string name="grant_overlay">授予悬浮窗权限</string>
+    <string name="language_direction">翻译方向</string>
+    <string name="zh_to_en">中文 → 英文</string>
+    <string name="en_to_zh">英文 → 中文</string>
+    <string name="text_to_speech">语音播报</string>
+    <string name="enable_tts">朗读翻译结果</string>
+    <string name="overlay_opacity">悬浮窗透明度</string>
+    <string name="opacity">透明度</string>
+    <string name="opacity_percent">%d%%</string>
+    <string name="instructions">授予以上所有权限后，点击"启动翻译器"。\n悬浮窗将显示在所有应用之上。\n自然说话，翻译即时显示。</string>
+    <string name="translator_active">翻译器运行中</string>
+    <string name="translator_running">实时翻译正在运行</string>
+    <string name="stop">停止</string>
+    <string name="granted">✓ 已授权</string>
+    <string name="not_granted">✗ 未授权</string>
+    <string name="all_permissions_granted">所有权限已授予，可以开始使用！</string>
+    <string name="grant_permissions_hint">请授予以上所有权限，然后点击"启动翻译器"开始使用。</string>
+    <string name="notification_title">翻译器运行中</string>
+    <string name="notification_text">实时翻译正在运行</string>
+    <string name="service_running">● 服务运行中</string>
+    <string name="service_stopped">● 服务已停止</string>
+    <string name="listening">正在聆听…</string>
+</resources>
