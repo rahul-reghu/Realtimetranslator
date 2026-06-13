@@ -6,181 +6,132 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardOverlay"
-        android:layout_width="340dp"
+        android:layout_width="270dp"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/overlay_bg"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="16dp">
+        app:cardCornerRadius="18dp"
+        app:cardElevation="12dp">
 
         <LinearLayout
             android:id="@+id/layoutContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="14dp">
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp">
 
-            <!-- Top bar: drag handle + controls -->
+            <!-- Row 1: drag handle + close -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="28dp"
+                android:layout_height="20dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="10dp">
+                android:layout_marginBottom="6dp">
 
-                <!-- Drag handle (takes up most space) -->
                 <View
                     android:id="@+id/dragHandle"
                     android:layout_width="0dp"
-                    android:layout_height="4dp"
+                    android:layout_height="3dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="12dp"
-                    android:background="#44FFFFFF"
-                    android:backgroundTint="@null"/>
+                    android:background="#44FFFFFF"/>
 
                 <ImageButton
                     android:id="@+id/btnMinimize"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@android:drawable/arrow_up_float"
-                    android:tint="#AAFFFFFF"
+                    android:tint="#88FFFFFF"
                     android:background="@android:color/transparent"
                     android:contentDescription="Minimize"
-                    android:layout_marginEnd="2dp"/>
+                    android:layout_marginStart="8dp"/>
 
                 <ImageButton
                     android:id="@+id/btnClose"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
                     android:tint="@color/accent_red"
                     android:background="@android:color/transparent"
-                    android:contentDescription="Close"/>
+                    android:contentDescription="Close"
+                    android:layout_marginStart="2dp"/>
             </LinearLayout>
 
-            <!-- Listen / Translate button -->
-            <Button
-                android:id="@+id/btnListenToggle"
+            <!-- Row 2: Listen button + swap pill in one row -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="TAP TO LISTEN"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.05"
-                android:background="@drawable/bg_pill_green"
-                android:layout_marginBottom="10dp"
-                android:stateListAnimator="@null"/>
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-            <!-- Language swap pill -->
-            <Button
-                android:id="@+id/btnSwapLanguage"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:text="ZH → EN  ⇄  tap to swap"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:background="@drawable/bg_pill_glass"
-                android:layout_marginBottom="14dp"
-                android:stateListAnimator="@null"/>
+                <Button
+                    android:id="@+id/btnListenToggle"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="▶ LISTEN"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_green"
+                    android:stateListAnimator="@null"
+                    android:layout_marginEnd="6dp"/>
 
-            <!-- Heard text label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="HEARD"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="4dp"/>
+                <Button
+                    android:id="@+id/btnSwapLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:text="ZH↔EN"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp"
+                    android:background="@drawable/bg_pill_glass"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:stateListAnimator="@null"/>
+            </LinearLayout>
 
-            <!-- Source text (live preview) -->
+            <!-- Live preview (hidden until speech starts) -->
             <TextView
                 android:id="@+id/tvSourceText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="32dp"
                 android:hint="@string/listening"
                 android:textColor="@color/text_secondary"
                 android:textColorHint="@color/text_hint"
-                android:textSize="13sp"
-                android:maxLines="3"
+                android:textSize="11sp"
+                android:maxLines="2"
                 android:ellipsize="end"
-                android:layout_marginBottom="10dp"/>
+                android:visibility="gone"
+                android:layout_marginBottom="4dp"/>
 
-            <!-- Divider with arrow -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="10dp">
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1"
-                    android:background="@color/divider"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="  ↓  "
-                    android:textColor="@color/accent_blue"
-                    android:textSize="13sp"/>
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1"
-                    android:background="@color/divider"/>
-            </LinearLayout>
-
-            <!-- Translation label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TRANSLATION"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="6dp"/>
-
-            <!-- Translated text -->
+            <!-- Translated text (hidden until translation arrives) -->
             <TextView
                 android:id="@+id/tvTranslatedText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="44dp"
                 android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:lineSpacingMultiplier="1.2"
-                android:layout_marginBottom="12dp"/>
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
 
-            <!-- Bottom row: TTS -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <Button
-                    android:id="@+id/btnTts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="🔊 Speak"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:background="@drawable/bg_pill_blue"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:stateListAnimator="@null"
-                    android:contentDescription="Speak translation"/>
-
-            </LinearLayout>
+            <!-- TTS button (hidden until translation arrives) -->
+            <Button
+                android:id="@+id/btnTts"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="🔊 Speak"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:background="@drawable/bg_pill_blue"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:stateListAnimator="@null"
+                android:visibility="gone"
+                android:contentDescription="Speak translation"/>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
