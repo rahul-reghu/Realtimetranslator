@@ -4,13 +4,26 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
+    <!-- Siri-like aura glow — sits behind the card -->
+    <com.realtimetranslator.AuraView
+        android:id="@+id/auraView"
+        android:layout_width="310dp"
+        android:layout_height="180dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="-20dp"
+        android:layout_marginBottom="-20dp"
+        android:layout_marginStart="-20dp"
+        android:layout_marginEnd="-20dp"/>
+
+    <!-- Overlay card on top of the aura -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardOverlay"
         android:layout_width="270dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         app:cardBackgroundColor="@color/overlay_bg"
         app:cardCornerRadius="18dp"
-        app:cardElevation="12dp">
+        app:cardElevation="0dp">
 
         <LinearLayout
             android:id="@+id/layoutContent"
@@ -22,7 +35,7 @@
             android:paddingTop="8dp"
             android:paddingBottom="10dp">
 
-            <!-- Row 1: drag handle + close -->
+            <!-- Top bar: drag handle + controls -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="20dp"
@@ -58,7 +71,7 @@
                     android:layout_marginStart="2dp"/>
             </LinearLayout>
 
-            <!-- Row 2: Listen button + swap pill in one row -->
+            <!-- Listen / Translate + swap in one row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -92,7 +105,7 @@
                     android:stateListAnimator="@null"/>
             </LinearLayout>
 
-            <!-- Live preview (hidden until speech starts) -->
+            <!-- Live preview -->
             <TextView
                 android:id="@+id/tvSourceText"
                 android:layout_width="match_parent"
@@ -106,7 +119,7 @@
                 android:visibility="gone"
                 android:layout_marginBottom="4dp"/>
 
-            <!-- Translated text (hidden until translation arrives) -->
+            <!-- Translation -->
             <TextView
                 android:id="@+id/tvTranslatedText"
                 android:layout_width="match_parent"
@@ -118,7 +131,7 @@
                 android:visibility="gone"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- TTS button (hidden until translation arrives) -->
+            <!-- TTS button -->
             <Button
                 android:id="@+id/btnTts"
                 android:layout_width="wrap_content"

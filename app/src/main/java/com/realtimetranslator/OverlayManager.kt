@@ -150,8 +150,8 @@ class OverlayManager(private val context: Context) {
         binding.btnListenToggle.setOnClickListener {
             isListening = !isListening
             updateListenButton()
+            binding.auraView.setListening(isListening)
             if (!isListening) {
-                // Collapsing — hide preview, keep translation visible
                 binding.tvSourceText.visibility = View.GONE
             }
             onListenToggled?.invoke(isListening)
