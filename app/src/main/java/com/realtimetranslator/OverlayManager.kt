@@ -108,21 +108,38 @@ class OverlayManager(private val context: Context) {
         binding.btnSwapLanguage.text = currentLanguageLabel
     }
 
+    private var isDragging = false
+    private val dragThreshold = 10f   // pixels moved before we treat touch as a drag
+
     private fun setupDragListener() {
-        binding.dragHandle.setOnTouchListener { _, event ->
+        // Make the whole card draggable — use a threshold to distinguish drag from tap
+        binding.cardOverlay.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = layoutParams.x
                     initialY = layoutParams.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
+                    isDragging = false
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    layoutParams.x = initialX + (event.rawX - initialTouchX).toInt()
-                    layoutParams.y = initialY + (event.rawY - initialTouchY).toInt()
-                    windowManager.updateViewLayout(overlayView, layoutParams)
-                    true
+                    val dx = event.rawX - initialTouchX
+                    val dy = event.rawY - initialTouchY
+                    if (!isDragging && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
+                        isDragging = true
+                    }
+                    if (isDragging) {
+                        layoutParams.x = initialX + dx.toInt()
+                        layoutParams.y = initialY + dy.toInt()
+                        windowManager.updateViewLayout(overlayView, layoutParams)
+                    }
+                    isDragging  // only consume event if dragging
+                }
+                MotionEvent.ACTION_UP -> {
+                    val wasDragging = isDragging
+                    isDragging = false
+                    wasDragging  // if was dragging, consume; else let click through to children
                 }
                 else -> false
             }
